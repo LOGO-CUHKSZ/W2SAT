@@ -52,15 +52,17 @@ def read_sat(sat_path):
         num_vars = int(header_info[-2])
         num_clauses = int(header_info[-1])
 
-        sat = [[int(x) for x in line.replace(' 0\n', '').split(' ')]
-               for line in sat_lines[1:]]
+        sat = [
+            [int(x) for x in line.replace(" 0\n", "").split(" ")]
+            for line in sat_lines[1:]
+        ]
 
         return sat, num_vars, num_clauses
 
 
 def getEmbedding(name):
     print(name)
-    sat_path = f'./dataset/train_formulas/{name}'
+    sat_path = f"./dataset/train_formulas/{name}"
     sat_instance, num_vars, num_clauses = read_sat(sat_path)
     vocab_size = num_vars * 2
 
@@ -72,7 +74,7 @@ def getEmbedding(name):
             target = clause[i]
             data.append((context, target))
 
-    print(f'data size: {len(data)}')
+    print(f"data size: {len(data)}")
 
     # model setting
     EMDEDDING_DIM = 50
@@ -92,8 +94,9 @@ def getEmbedding(name):
         for context, target in data:
             context_vector = make_context_vector(context, literal_to_ix)
             log_probs = model(context_vector)
-            total_loss += loss_function(log_probs,
-                                        torch.tensor([literal_to_ix[target]]))
+            total_loss += loss_function(
+                log_probs, torch.tensor([literal_to_ix[target]])
+            )
 
         optimizer.zero_grad()
         total_loss.backward()
@@ -104,17 +107,17 @@ def getEmbedding(name):
 
     # test the embedding
     embeddings = model.get_embeddings()
-    torch.save(embeddings, f'./model/embeddings/{name}.pt')
+    torch.save(embeddings, f"./model/embeddings/{name}.pt")
 
 
-if __name__ == '__main__':
-    print('Parent process %s.' % os.getpid())
-    names = os.listdir('./dataset/train_formulas/')
+if __name__ == "__main__":
+    print("Parent process %s." % os.getpid())
+    names = os.listdir("./dataset/train_formulas/")
     print(names)
     p = Pool(20)
     for name in names:
         p.apply_async(getEmbedding, args=(name,))
-    print('Waiting for all subprocesses done...')
+    print("Waiting for all subprocesses done...")
     p.close()
     p.join()
-    print('All subprocesses done.')
+    print("All subprocesses done.")

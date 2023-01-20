@@ -1,0 +1,20 @@
+- sat_prob_83.processed.cnf: False, 8012, 1759, 1184.414490222931
+<!-- - AProVE07-03.processed.cnf: False, 7448, 1317, 123.44123649597168 -->
+- countbitsrotate016.processed.cnf: False, 4555, 1122, 9.872313737869263
+- cmu-bmc-longmult15.processed.cnf: False, 9791, 1731, 8.177405834197998
+- smulo016.processed.cnf: False, 6288, 1459, 4.671319246292114
+- countbitssrl016.processed.cnf: False, 8378, 1691, 1.354658603668213
+- mrpp_4x4#8_8.processed.cnf: True, 6773, 717, 0.103240966796875
+- ii32e3.processed.cnf: True, 4974, 284, 0.014684438705444336
+- bmc-ibm-2.processed.cnf: True, 573, 119, 0.001615285873413086
+- ssa2670-130.processed.cnf: False, 327, 82, 0.0010762214660644531
+- mrpp_4x4#4_4.processed.cnf: False, 1538, 208, 0.0040776729583740234
+- bmc-ibm-7.processed.cnf: True, 4797, 860, 0.010960102081298828
+- ssa2670-141.processed.cnf: False, 377, 91, 0.001859903335571289
+- bf0432-007.processed.cnf: False, 2038, 473, 0.011137962341308594
+- minor032.processed.cnf: False, 5130, 751, 0.09339761734008789
+- ii32a1.processed.cnf: True, 9123, 370, 0.02249884605407715
+- ii32d2.processed.cnf: True, 5116, 367, 0.013778924942016602
+- bmc-ibm-5.processed.cnf: True, 6042, 1068, 0.013544082641601562
+- mrpp_4x4#6_5.processed.cnf: False, 2721, 330, 0.009879827499389648
+- mrpp_4x4#4_5.processed.cnf: True, 2517, 309, 0.009099721908569336
