@@ -12,7 +12,7 @@ skip_table = ['aes_24_4_keyfind_2.processed.cnf',
               '']
 # skip_table = []
 
-test_filenames = [x for x in filenames if 'aes' not in x and 'sat' not in x]
+test_filenames = [x for x in filenames if 'g2' not in x]
 for filename in test_filenames:
     start_time = time.time()
     print(filename)
