@@ -329,24 +329,28 @@ def get_clique_gain(lig_weighted_adjacency_matrix, clique):
     return gain
 
 
-def lazy_clique_edge_cover(lig_weighted_adjacency_matrix, clique_candidates, cliques_quota, num_vars):
+def lazy_clique_edge_cover(lig_weighted_adjacency_matrix, clique_candidates, cliques_quota):
     def get_edges(clique): return it.combinations(clique, 2)
-    current_clique_idxs = []
-    triu_adjacency_matrix = np.triu(lig_weighted_adjacency_matrix)
-    x, y = triu_adjacency_matrix.nonzero()
+
+    # build dependency
+    # print('dependency analysis start')
+    # start_time = time.time()
+    # build node_occurrence
+    node_occurrence = [[] for i in range(len(lig_weighted_adjacency_matrix))]
+    for idx, clique in enumerate(clique_candidates):
+        for node in clique:
+            node_occurrence[node].append(idx)
+    node_occurrence = [set(occ) for occ in node_occurrence]
 
     # build edge_occurrence
-    # print('dependency analysis start')
-    start_time = time.time()
-    num_clique_candidates = len(clique_candidates)
+    triu_adjacency_matrix = np.triu(lig_weighted_adjacency_matrix)
+    x, y = triu_adjacency_matrix.nonzero()
     edge_list = [frozenset([i, j]) for i, j in zip(x, y)]
-    edge_occurrence = {x: [] for x in edge_list}
-    for i in range(num_clique_candidates):
-        clique = clique_candidates[i]
-        pairs = get_edges(clique)
-        for pair in pairs:
-            edge_occurrence[frozenset(pair)].append(i)
-
+    edge_occurrence = {}
+    for edge in edge_list:
+        i, j = edge
+        edge_occurrence[edge] = list(
+            node_occurrence[i].intersection(node_occurrence[j]))
     # print(f"edge_occurrence analysis time: {time.time() - start_time:.4f}")
 
     # default clique gain
@@ -355,44 +359,35 @@ def lazy_clique_edge_cover(lig_weighted_adjacency_matrix, clique_candidates, cli
                            for clique in clique_candidates])
 
     # the greedy process (import probability in here?)
+    current_clique_idxs = []
+    num_clique_candidates = len(clique_candidates)
     for i in range(cliques_quota):
         clique_gain[current_clique_idxs] = -10000
         best_clique_idx = np.argmax(clique_gain)
         current_clique_idxs.append(best_clique_idx)
 
         best_clique = clique_candidates[best_clique_idx]
-        pairs = list(get_edges(best_clique))
+        best_clique_edges = list(get_edges(best_clique))
 
         # update the weighted_adjacency_matrix
-        for pair in pairs:
-            x_idx = pair[0]
-            y_idx = pair[1]
-            lig_weighted_adjacency_matrix[x_idx, y_idx] -= 1
-            lig_weighted_adjacency_matrix[y_idx, x_idx] -= 1
-        # print(
-        #     f'best_clique_idx: {best_clique_idx}, len of pairs: {len(pairs)}')
+        to_update_edges = []
+        for edge in best_clique_edges:
+            x, y = edge
+            lig_weighted_adjacency_matrix[x, y] -= 1
+            lig_weighted_adjacency_matrix[y, x] -= 1
+            if lig_weighted_adjacency_matrix[x, y] == 0:
+                to_update_edges.append(edge)
 
-        # update realted clique
-        # start_time = time.time()
+        # find the realted clique and update the gain table
         clique_candidates_idx = np.arange(num_clique_candidates)
         related_clique_idx = np.zeros(num_clique_candidates, dtype=bool)
-        for pair in pairs:
-            edge = frozenset(pair)
-            cliques_idx_occurrence = edge_occurrence[edge]
-            related_clique_idx[cliques_idx_occurrence] = True
-        related_clique = clique_candidates_idx[related_clique_idx]
-        # print(f"build related_clique time: {time.time() - start_time:.4f}")
-        # related_clique_num = len(related_clique)
-        # if i % 10 == 0:
-        #     print(f"i: {i}, related cliques num: {related_clique_num}")
+        for edge in to_update_edges:
+            edge = frozenset(edge)
+            cliques_idx = edge_occurrence[edge]
+            for idx in cliques_idx:
+                clique_gain[idx] = clique_gain[idx] - 2
 
-        # update gain table
-        for clique_idx in related_clique:
-            clique_prime = clique_candidates[clique_idx]
-            clique_gain[clique_idx] = get_clique_gain(
-                lig_weighted_adjacency_matrix, clique_prime)
-
-    return current_clique_idxs
+    return [clique_candidates[idx] for idx in current_clique_idxs]
 
 
 def cliques_to_sat(cliques):
