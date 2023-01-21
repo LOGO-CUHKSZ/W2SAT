@@ -62,7 +62,7 @@ def read_sat(sat_path):
 
 def getEmbedding(name):
     print(name)
-    sat_path = f"./dataset/train_formulas/{name}"
+    sat_path = f"./dataset/formulas/{name}"
     sat_instance, num_vars, num_clauses = read_sat(sat_path)
     vocab_size = num_vars * 2
 
