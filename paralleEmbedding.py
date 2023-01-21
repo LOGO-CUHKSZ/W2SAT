@@ -112,7 +112,7 @@ def getEmbedding(name):
 
 if __name__ == "__main__":
     print("Parent process %s." % os.getpid())
-    names = os.listdir("./dataset/train_formulas/")
+    names = os.listdir("./dataset/formulas/")
     print(names)
     p = Pool(20)
     for name in names:
