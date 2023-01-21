@@ -28,7 +28,20 @@ def main():
     path_to_formulas = options.path_to_formulas
     benchmark_set_name = path_to_formulas.split("/")[-2]
     out_name = options.out_file
-    scale_free = options.scale_free
+    # scale_free = options.scale_free
+
+    # title = [
+    #     "num. vars",
+    #     "num. clauses",
+    #     "VIG clust.",
+    #     "LIG clust.",
+    #     "mod. VIG",
+    #     "mod. LIG",
+    #     "mod. VCG",
+    #     "mod. LCG",
+    #     "var. alpha",
+    #     "clause alpha",
+    # ]
 
     title = [
         "num. vars",
@@ -39,8 +52,6 @@ def main():
         "mod. LIG",
         "mod. VCG",
         "mod. LCG",
-        "var. alpha",
-        "clause alpha",
     ]
 
     lines = []
@@ -98,7 +109,7 @@ def main():
         features += get_modularities(VIG, LIG, VCG, LCG)
         # print(f"modularity cost time: {time.time() - start_time:.4f}")
 
-        features += get_scale_free(source, scale_free)
+        # features += get_scale_free(source, scale_free)
         lines.append(features)
 
     if out_name != None:
@@ -109,8 +120,10 @@ def main():
         lines = np.array(lines)
         means = np.nanmean(lines, axis=0)
         std = np.nanstd(lines, axis=0)
+        print("W2SAT &")
         for i, column_name in enumerate(title):
-            print("mean/std {}: {}/{}".format(column_name, means[i], std[i]))
+            # print("mean/std {}: {}/{}".format(column_name, means[i], std[i]))
+            print(f"{means[i]:.3f} &")
 
 
 def getParser():
