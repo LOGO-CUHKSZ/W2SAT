@@ -89,7 +89,7 @@ def getEmbedding(name):
     optimizer = torch.optim.SGD(model.parameters(), lr=0.001)
 
     # training
-    for epoch in range(1):
+    for epoch in range(50):
         total_loss = 0
         for context, target in data:
             context_vector = make_context_vector(context, literal_to_ix)
