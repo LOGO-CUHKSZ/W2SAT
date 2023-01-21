@@ -81,7 +81,7 @@ def train_eval(name):
     model = GCN(50)
     optimizer = torch.optim.Adam(model.parameters(), lr=0.01, weight_decay=5e-4)
     model.train()
-    for epoch in range(600):
+    for epoch in range(500):
         optimizer.zero_grad()
         out = model(data)
         src, dst = edge_index
