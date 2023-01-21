@@ -81,7 +81,7 @@ def train_eval(name):
     model = GCN(50)
     optimizer = torch.optim.Adam(model.parameters(), lr=0.01, weight_decay=5e-4)
     model.train()
-    for epoch in range(400):
+    for epoch in range(600):
         optimizer.zero_grad()
         out = model(data)
         src, dst = edge_index
@@ -111,7 +111,7 @@ def train_eval(name):
 
     # WLIG generation
     start_time = time.time()
-    generate_num = 50
+    generate_num = 100
     path = f"./result/generation"
     directory = f"{path}/{name}"
     print(directory)
@@ -175,13 +175,13 @@ if __name__ == "__main__":
     formulas_path = "./dataset/formulas/"
     csvfile = open("./result/result-generation.csv", "w")
     csvwriter = csv.writer(csvfile, delimiter=",")
-    # names = os.listdir(formulas_path)
-    names = [
-        "ssa2670-141.processed.cnf",
-        "ssa2670-130.processed.cnf",
-        "bmc-ibm-2.processed.cnf",
-        # "bmc-ibm-7.processed.cnf",
-    ]
+    names = os.listdir(formulas_path)
+    # names = [
+    #     "ssa2670-141.processed.cnf",
+    #     "ssa2670-130.processed.cnf",
+    #     "bmc-ibm-2.processed.cnf",
+    #     # "bmc-ibm-7.processed.cnf",
+    # ]
     print(names)
     p = Pool(1)
     for name in names:
