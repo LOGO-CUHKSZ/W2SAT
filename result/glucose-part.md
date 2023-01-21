@@ -1,9 +1,11 @@
 - sat_prob_83.processed.cnf: False, 8012, 1759, 1184.414490222931
 <!-- - AProVE07-03.processed.cnf: False, 7448, 1317, 123.44123649597168 -->
+- aes_32_3_keyfind_2.processed.cnf: True, 2204, 450, 672.8109209537506
 - countbitsrotate016.processed.cnf: False, 4555, 1122, 9.872313737869263
 - cmu-bmc-longmult15.processed.cnf: False, 9791, 1731, 8.177405834197998
 - smulo016.processed.cnf: False, 6288, 1459, 4.671319246292114
 - countbitssrl016.processed.cnf: False, 8378, 1691, 1.354658603668213
+
 - mrpp_4x4#8_8.processed.cnf: True, 6773, 717, 0.103240966796875
 - ii32e3.processed.cnf: True, 4974, 284, 0.014684438705444336
 - bmc-ibm-2.processed.cnf: True, 573, 119, 0.001615285873413086
