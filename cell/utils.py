@@ -27,9 +27,9 @@ def link_prediction_performance(scores_matrix, val_ones, val_zeros):
 
     Args:
         scores_matrix (np.array): Symmetric scores matrix of the graph generative model.
-        val_ones (np.array): Validation edges. Rows represent indices of the input adjacency matrix with value 1. 
+        val_ones (np.array): Validation edges. Rows represent indices of the input adjacency matrix with value 1.
         val_zeros (np.array): Validation non-edges. Rows represent indices of the input adjacency matrix with value 0.
-        
+
     Returns:
        2-Tuple containg ROC-AUC score and Average precision.
     """
@@ -50,12 +50,12 @@ def scores_matrix_from_transition_matrix(transition_matrix, symmetric=True):
     Compute the scores matrix from the transition matrix.
 
     Args:
-        transition_matrix (np.array, shape=(N,N)): Matrix whose entries (i,j) correspond to the probability of a 
+        transition_matrix (np.array, shape=(N,N)): Matrix whose entries (i,j) correspond to the probability of a
                                                    transition from node i to j.
         symmetric (bool, default:True): If True, symmetrize the resulting scores matrix.
 
     Returns:
-        scores_matrix(sp.csr.csr_matrix, shape=(N, N)): Matrix whose entries (i,j) correspond to the weight of the 
+        scores_matrix(sp.csr.csr_matrix, shape=(N, N)): Matrix whose entries (i,j) correspond to the weight of the
                                                         directed edge (i, j) in an edge-independent model.
     """
 
@@ -76,13 +76,48 @@ def graph_from_scores(scores_matrix, n_edges):
     See the paper for details.
 
     Args:
-        scores_matrix (sp.csr.csr_matrix, shape=(N, N)): Matrix whose entries (i,j) correspond to the weight of the 
+        scores_matrix (sp.csr.csr_matrix, shape=(N, N)): Matrix whose entries (i,j) correspond to the weight of the
                                                         directed edge (i, j) in an edge-independent model.
         n_edges (int): The desired number of edges in the generated graph.
 
     Returns
     -------
     target_g (sp.csr.csr_matrix, shape=(N, N)): Adjacency matrix of the generated graph.
+    """
+
+    target_g = sp.csr_matrix(scores_matrix.shape)
+
+    np.fill_diagonal(scores_matrix, 0)
+
+    degrees = scores_matrix.sum(1)  # The row sum over the scores_matrix.
+
+    N = scores_matrix.shape[0]
+
+    for n in range(N):  # Iterate over the nodes
+        target = np.random.choice(N, p=scores_matrix[n] / degrees[n])
+        target_g[n, target] = 1
+        target_g[target, n] = 1
+
+    diff = np.round((2 * n_edges - target_g.sum()) / 2)
+    if diff > 0:
+        triu = np.triu(scores_matrix)
+        triu[target_g.nonzero()] = 0
+        triu = triu / triu.sum()
+
+        triu_ixs = np.triu_indices_from(scores_matrix)
+        extra_edges = np.random.choice(
+            triu_ixs[0].shape[0], replace=False, p=triu[triu_ixs], size=int(diff)
+        )
+
+        target_g[(triu_ixs[0][extra_edges], triu_ixs[1][extra_edges])] = 1
+        target_g[(triu_ixs[1][extra_edges], triu_ixs[0][extra_edges])] = 1
+
+    return target_g
+
+
+def graph_from_scores_prime(scores_matrix, n_edges):
+    """
+    For Yu Sir
     """
 
     target_g = sp.csr_matrix(scores_matrix.shape)

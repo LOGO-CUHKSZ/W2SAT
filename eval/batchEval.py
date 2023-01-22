@@ -9,7 +9,7 @@ def gridSearchBacth(v, c, instance):
     start_time = time.time()
     subprocess.call(
         [
-            "/Users/wenweihuang/workspace/Net2SAT/eval/eval-solver.sh",
+            "/home/wenweihuang/workspace/Net2SAT/eval/eval-solver.sh",
             instance,
             f"{v}",
             f"{c}",
