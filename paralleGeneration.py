@@ -99,11 +99,11 @@ def train_eval(name):
     cell_model = Cell(
         A=sparse_matrix,
         H=10,
-        callbacks=[EdgeOverlapCriterion(invoke_every=10, edge_overlap_limit=0.75)],
+        callbacks=[EdgeOverlapCriterion(invoke_every=10, edge_overlap_limit=0.85)],
     )
 
     cell_model.train(
-        steps=200,
+        steps=250,
         optimizer_fn=torch.optim.Adam,
         optimizer_args={"lr": 0.1, "weight_decay": 1e-7},
     )
