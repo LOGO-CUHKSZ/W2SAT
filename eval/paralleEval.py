@@ -7,17 +7,19 @@ import time
 
 def gridSearch(v, c, instance):
     start_time = time.time()
-    path = f"/home/wenweihuang/workspace/Net2SAT/dataset/formulas/{instance}"
-    subprocess.call(
-        [
-            "/home/wenweihuang/workspace//Net2SAT/eval/glucose",
-            f"-var-decay={v}",
-            f"-cla-decay={c}",
-            path,
-        ],
-        stdout=subprocess.DEVNULL,
-    )
+    for i in range(2):
+        path = f"/home/wenweihuang/workspace/Net2SAT/dataset/formulas/{instance}"
+        subprocess.call(
+            [
+                "/home/wenweihuang/workspace//Net2SAT/eval/glucose",
+                f"-var-decay={v}",
+                f"-cla-decay={c}",
+                path,
+            ],
+            stdout=subprocess.DEVNULL,
+        )
     solve_time = time.time() - start_time
+    solve_time = solve_time / 2
     log = open(f"../result/glucose/{instance}-{v:.3f}-{c:.3f}.log", "w")
     log.write(f"{v:.3f},{c:.3f},{instance},{solve_time:.3f}")
 

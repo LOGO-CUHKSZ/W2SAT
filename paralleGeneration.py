@@ -133,7 +133,7 @@ def train_eval(name):
 
         weighted_graph_prime = np.copy(graph_prime)
         weighted_graph_prime[weighted_graph_prime.nonzero()] = weight
-        clique_candidates = get_clique_candidates(graph_prime, max_len)
+        clique_candidates = get_clique_candidates(graph_prime, 2, max_len)
         current_cliques = lazy_clique_edge_cover(
             np.copy(weighted_graph_prime), clique_candidates, num_clauses
         )
