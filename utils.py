@@ -70,19 +70,6 @@ def sat_to_lig_adjacency_matrix(sat, num_vars):
     return lig_adjacency_matrix, lig_weighted_adjacency_matrix
 
 
-def get_clique_candidates(lig_adjacency_matrix, k, l):
-    graph = nx.from_numpy_matrix(lig_adjacency_matrix)
-    cliques = nx.enumerate_all_cliques(graph)
-    clique_candidates = []
-    for clique in cliques:
-        if len(clique) <= l:
-            if len(clique) > k:
-                clique_candidates.append(clique)
-        else:
-            break
-    return clique_candidates
-
-
 def cliques_to_weighted_adjacency_matrix(cliques, num_vars):
     weighted_adjacency_matrix = np.zeros([2 * num_vars, 2 * num_vars])
     for clique in cliques:
@@ -103,129 +90,115 @@ def objective(lig_weighted_adjacency_matrix, lig_weighted_adjacency_matrix_p):
     ).mean()
 
 
-def get_exchange_pairs(clique_bits):
-    one_idxs = []
-    zero_idxs = []
-    for idx, bit in enumerate(clique_bits):
-        if bit > 0:
-            one_idxs.append(idx)
-        else:
-            zero_idxs.append(idx)
-
-    idx_pairs = list(it.product(one_idxs, zero_idxs))
-    shuffle(idx_pairs)
-    return idx_pairs
-
-
 def cliques_to_sat(cliques):
     sat = []
     for clique in cliques:
         clause = [int((x + 2) / 2) if x % 2 == 0 else int(-(x + 1) / 2) for x in clique]
         sat.append(clause)
-
     return sat
 
 
-def clique_edge_cover(
-    lig_weighted_adjacency_matrix,
-    clique_candidates,
-    cliques_quota,
-    num_vars,
-    iterations,
+def lazy_clique_edge_cover(
+    lig_weighted_adjacency_matrix, clique_candidates, cliques_quota
 ):
-    clique_bits = [1 if i < cliques_quota else 0 for i in range(len(clique_candidates))]
-    shuffle(clique_bits)
-    current_cliques = [
-        clique for (clique, bit) in zip(clique_candidates, clique_bits) if bit == 1
-    ]
-    current_weighted_adjacency_matrix = cliques_to_weighted_adjacency_matrix(
-        current_cliques, num_vars
-    )
-    current_objective = objective(
-        lig_weighted_adjacency_matrix, current_weighted_adjacency_matrix
-    )
+    def get_edges(clique):
+        return it.combinations(clique, 2)
 
-    for iteration in range(iterations):
-        best_objective = current_objective
-        idx_pairs = get_exchange_pairs(clique_bits)
-        for pair in idx_pairs:
-            temp_clique_bits = [x for x in clique_bits]
-            temp_clique_bits[pair[0]] = 0
-            temp_clique_bits[pair[1]] = 1
-            temp_cliques = [
-                clique
-                for (clique, bit) in zip(clique_candidates, temp_clique_bits)
-                if bit == 1
-            ]
-            temp_weighted_adjacency_matrix = cliques_to_weighted_adjacency_matrix(
-                temp_cliques, num_vars
-            )
-            temp_objective = objective(
-                lig_weighted_adjacency_matrix, temp_weighted_adjacency_matrix
-            )
+    node_occurrence = [[] for i in range(len(lig_weighted_adjacency_matrix))]
+    for idx, clique in enumerate(clique_candidates):
+        for node in clique:
+            node_occurrence[node].append(idx)
+    node_occurrence = [set(occ) for occ in node_occurrence]
 
-            if temp_objective < current_objective:
-                clique_bits = temp_clique_bits
-                current_objective = temp_objective
-                print(f"iteration: {iteration}, current_objective: {current_objective}")
-                break
+    # build edge_occurrence
+    triu_adjacency_matrix = np.triu(lig_weighted_adjacency_matrix)
+    x, y = triu_adjacency_matrix.nonzero()
+    edge_list = [frozenset([i, j]) for i, j in zip(x, y)]
+    edge_occurrence = {}
+    for edge in edge_list:
+        i, j = edge
+        edge_occurrence[edge] = list(
+            node_occurrence[i].intersection(node_occurrence[j])
+        )
 
-        # print(current_objective)
-        # if current_objective < 0.025:
-        #     print('close enough')
-        #     break
-        if best_objective == current_objective:
-            print("converge")
-            break
+    # default clique gain
+    def get_default_gain(x):
+        return len(x) * (len(x) - 1)
 
-    current_cliques = [
-        clique for (clique, bit) in zip(clique_candidates, clique_bits) if bit == 1
-    ]
-    current_weighted_adjacency_matrix = cliques_to_weighted_adjacency_matrix(
-        current_cliques, num_vars
-    )
-    current_objective = objective(
-        lig_weighted_adjacency_matrix, current_weighted_adjacency_matrix
-    )
+    clique_gain = np.array([get_default_gain(clique) for clique in clique_candidates])
 
-    return current_cliques, current_weighted_adjacency_matrix, current_objective
-
-
-def greedy_clique_edge_cover(
-    lig_weighted_adjacency_matrix, clique_candidates, cliques_quota, num_vars
-):
+    # the greedy process (import probability in here?)
     current_clique_idxs = []
-    current_cliques = [clique_candidates[idx] for idx in current_clique_idxs]
-    current_weighted_adjacency_matrix = cliques_to_weighted_adjacency_matrix(
-        current_cliques, num_vars
-    )
-    current_objective = objective(
-        lig_weighted_adjacency_matrix, current_weighted_adjacency_matrix
-    )
-
-    clique_candidates_idx = set(range(len(clique_candidates)))
-    min_clique_idx = []
+    num_clique_candidates = len(clique_candidates)
     for i in range(cliques_quota):
-        min_objective = 10
-        for idx in clique_candidates_idx - set(current_clique_idxs):
-            temp_clique_idx = current_clique_idxs + [idx]
-            temp_cliques = [clique_candidates[idx] for idx in temp_clique_idx]
-            temp_weighted_adjacency_matrix = cliques_to_weighted_adjacency_matrix(
-                temp_cliques, num_vars
-            )
-            temp_objective = objective(
-                lig_weighted_adjacency_matrix, temp_weighted_adjacency_matrix
-            )
-            if temp_objective < min_objective:
-                min_objective = temp_objective
-                min_clique_idx = temp_clique_idx
+        clique_gain[current_clique_idxs] = -10000
+        best_clique_idx = np.argmax(clique_gain)
+        current_clique_idxs.append(best_clique_idx)
 
-        current_clique_idxs = min_clique_idx
-        current_objective = min_objective
+        best_clique = clique_candidates[best_clique_idx]
+        best_clique_edges = list(get_edges(best_clique))
 
-        print(f"iteration: {i}, current_objective: {current_objective}")
+        # update the weighted_adjacency_matrix
+        to_update_edges = []
+        for edge in best_clique_edges:
+            x, y = edge
+            lig_weighted_adjacency_matrix[x, y] -= 1
+            lig_weighted_adjacency_matrix[y, x] -= 1
+            if lig_weighted_adjacency_matrix[x, y] == 0:
+                to_update_edges.append(edge)
 
-    return current_clique_idxs, current_objective
+        # find the realted clique and update the gain table
+        for edge in to_update_edges:
+            edge = frozenset(edge)
+            cliques_idx = edge_occurrence[edge]
+            for idx in cliques_idx:
+                clique_gain[idx] = clique_gain[idx] - 2
+
+    return [clique_candidates[idx] for idx in current_clique_idxs]
+
+
+def get_clique_candidates(lig_adjacency_matrix, k):
+    graph = nx.from_numpy_matrix(lig_adjacency_matrix)
+    cliques = nx.enumerate_all_cliques(graph)
+    clique_candidates = []
+    for clique in cliques:
+        if len(clique) <= k:
+            if len(clique) > 1:
+                clique_candidates.append(clique)
+        else:
+            break
+    return clique_candidates
+
+
+def cliques_to_weighted_adjacency_matrix(cliques, num_vars):
+    weighted_adjacency_matrix = np.zeros([2 * num_vars, 2 * num_vars])
+    for clique in cliques:
+        pairs = it.combinations(clique, 2)
+        for pair in pairs:
+            x_idx = pair[0]
+            y_idx = pair[1]
+
+            weighted_adjacency_matrix[x_idx, y_idx] += 1
+            weighted_adjacency_matrix[y_idx, x_idx] += 1
+
+    return weighted_adjacency_matrix
+
+
+def get_clique_gain(lig_weighted_adjacency_matrix, clique):
+    gain = 0
+    pairs = it.combinations(clique, 2)
+    for pair in pairs:
+        x_idx = pair[0]
+        y_idx = pair[1]
+        if lig_weighted_adjacency_matrix[x_idx][y_idx] > 0:
+            gain += 1
+        else:
+            gain -= 1
+        if lig_weighted_adjacency_matrix[y_idx][x_idx] > 0:
+            gain += 1
+        else:
+            gain -= 1
+    return gain
 
 
 def preprocess_VIG(formula, VIG):
@@ -311,123 +284,3 @@ def eval_solution(sat, num_vars):
     mod_LCG = community.modularity(part_LCG, LCG)  # Modularity of LCG
 
     return [clust_VIG, clust_LIG, mod_VIG, mod_LIG, mod_VCG, mod_LCG]
-
-
-def get_clique_candidates(lig_adjacency_matrix, k):
-    graph = nx.from_numpy_matrix(lig_adjacency_matrix)
-    cliques = nx.enumerate_all_cliques(graph)
-    clique_candidates = []
-    for clique in cliques:
-        if len(clique) <= k:
-            if len(clique) > 1:
-                clique_candidates.append(clique)
-        else:
-            break
-    return clique_candidates
-
-
-def cliques_to_weighted_adjacency_matrix(cliques, num_vars):
-    weighted_adjacency_matrix = np.zeros([2 * num_vars, 2 * num_vars])
-    for clique in cliques:
-        pairs = it.combinations(clique, 2)
-        for pair in pairs:
-            x_idx = pair[0]
-            y_idx = pair[1]
-
-            weighted_adjacency_matrix[x_idx, y_idx] += 1
-            weighted_adjacency_matrix[y_idx, x_idx] += 1
-
-    return weighted_adjacency_matrix
-
-
-def get_clique_gain(lig_weighted_adjacency_matrix, clique):
-    gain = 0
-    pairs = it.combinations(clique, 2)
-    for pair in pairs:
-        x_idx = pair[0]
-        y_idx = pair[1]
-        if lig_weighted_adjacency_matrix[x_idx][y_idx] > 0:
-            gain += 1
-        else:
-            gain -= 1
-        if lig_weighted_adjacency_matrix[y_idx][x_idx] > 0:
-            gain += 1
-        else:
-            gain -= 1
-    return gain
-
-
-def lazy_clique_edge_cover(
-    lig_weighted_adjacency_matrix, clique_candidates, cliques_quota
-):
-    def get_edges(clique):
-        return it.combinations(clique, 2)
-
-    # build dependency
-    # print('dependency analysis start')
-    # start_time = time.time()
-    # build node_occurrence
-    node_occurrence = [[] for i in range(len(lig_weighted_adjacency_matrix))]
-    for idx, clique in enumerate(clique_candidates):
-        for node in clique:
-            node_occurrence[node].append(idx)
-    node_occurrence = [set(occ) for occ in node_occurrence]
-
-    # build edge_occurrence
-    triu_adjacency_matrix = np.triu(lig_weighted_adjacency_matrix)
-    x, y = triu_adjacency_matrix.nonzero()
-    edge_list = [frozenset([i, j]) for i, j in zip(x, y)]
-    edge_occurrence = {}
-    for edge in edge_list:
-        i, j = edge
-        edge_occurrence[edge] = list(
-            node_occurrence[i].intersection(node_occurrence[j])
-        )
-    # print(f"edge_occurrence analysis time: {time.time() - start_time:.4f}")
-
-    # default clique gain
-    def get_default_gain(x):
-        return len(x) * (len(x) - 1)
-
-    clique_gain = np.array([get_default_gain(clique) for clique in clique_candidates])
-
-    # the greedy process (import probability in here?)
-    current_clique_idxs = []
-    num_clique_candidates = len(clique_candidates)
-    for i in range(cliques_quota):
-        clique_gain[current_clique_idxs] = -10000
-        best_clique_idx = np.argmax(clique_gain)
-        current_clique_idxs.append(best_clique_idx)
-
-        best_clique = clique_candidates[best_clique_idx]
-        best_clique_edges = list(get_edges(best_clique))
-
-        # update the weighted_adjacency_matrix
-        to_update_edges = []
-        for edge in best_clique_edges:
-            x, y = edge
-            lig_weighted_adjacency_matrix[x, y] -= 1
-            lig_weighted_adjacency_matrix[y, x] -= 1
-            if lig_weighted_adjacency_matrix[x, y] == 0:
-                to_update_edges.append(edge)
-
-        # find the realted clique and update the gain table
-        clique_candidates_idx = np.arange(num_clique_candidates)
-        related_clique_idx = np.zeros(num_clique_candidates, dtype=bool)
-        for edge in to_update_edges:
-            edge = frozenset(edge)
-            cliques_idx = edge_occurrence[edge]
-            for idx in cliques_idx:
-                clique_gain[idx] = clique_gain[idx] - 2
-
-    return [clique_candidates[idx] for idx in current_clique_idxs]
-
-
-def cliques_to_sat(cliques):
-    sat = []
-
-    for clique in cliques:
-        clause = [int((x + 2) / 2) if x % 2 == 0 else int(-(x + 1) / 2) for x in clique]
-        sat.append(clause)
-
-    return sat

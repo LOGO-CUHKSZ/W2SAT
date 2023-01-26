@@ -18,7 +18,6 @@ import torch
 import torch.nn.functional as F
 from torch_geometric.nn import GCNConv
 
-# from torch_geometric.nn import GATConv
 from torch_geometric.data import Data
 
 import warnings
@@ -32,19 +31,12 @@ class GCN(torch.nn.Module):
         # GCN initialization
         self.conv1 = GCNConv(node_features, 64)
         self.conv2 = GCNConv(64, 128)
-        # self.conv1 = GATConv(node_features, 64, 5)
-        # self.conv2 = GATConv(64 * 5, 128)
-        # self.conv3 = GCNConv(128, 128)
 
     def forward(self, data):
         x, edge_index = data.x, data.edge_index
         x = self.conv1(x, edge_index)
         x = F.relu(x)
-        # x = F.elu(x)
-        # x = F.dropout(x, training=self.training)
         x = self.conv2(x, edge_index)
-        # x = F.tanh(x)
-        # x = self.conv3(x, edge_index)
 
         return x
 
@@ -86,11 +78,9 @@ def train_eval(name):
         out = model(data)
         src, dst = edge_index
         score = (out[src] * out[dst]).sum(dim=-1)
-        # score = torch.sigmoid(score)
         loss = F.mse_loss(score, torch.tensor(edge_value, dtype=torch.float))
         loss.backward()
         optimizer.step()
-        # print(f'epoch: {epoch}, loss: {loss.item()}')
     GNN_time = time.time() - start_time
 
     # CELL training
@@ -133,7 +123,7 @@ def train_eval(name):
 
         weighted_graph_prime = np.copy(graph_prime)
         weighted_graph_prime[weighted_graph_prime.nonzero()] = weight
-        clique_candidates = get_clique_candidates(graph_prime, 2, max_len)
+        clique_candidates = get_clique_candidates(graph_prime, max_len)
         current_cliques = lazy_clique_edge_cover(
             np.copy(weighted_graph_prime), clique_candidates, num_clauses
         )
@@ -166,15 +156,9 @@ def train_eval(name):
         )
     )
 
-    # csvwriter.writerow(
-    #     [name, num_vars, num_clauses, OWC_time, GNN_time, CELL_time, GEN_time_avg]
-    # )
-
 
 if __name__ == "__main__":
     formulas_path = "./dataset/formulas/"
-    csvfile = open("./result/result-generation.csv", "w")
-    csvwriter = csv.writer(csvfile, delimiter=",")
     names = os.listdir(formulas_path)
     # names = [
     #     "ssa2670-141.processed.cnf",
