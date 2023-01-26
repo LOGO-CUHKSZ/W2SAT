@@ -9,7 +9,7 @@ def gridSearchBacth(v, c, instance):
     start_time = time.time()
     subprocess.call(
         [
-            "./eval/eval-solver.sh",
+            "./eval/batch-eval-solver.sh",
             instance,
             f"{v}",
             f"{c}",

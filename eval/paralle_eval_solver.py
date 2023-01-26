@@ -8,10 +8,10 @@ import time
 def gridSearch(v, c, instance):
     start_time = time.time()
     for i in range(2):
-        path = f"/home/wenweihuang/workspace/Net2SAT/dataset/formulas/{instance}"
+        path = f"../dataset/formulas/{instance}"
         subprocess.call(
             [
-                "/home/wenweihuang/workspace//Net2SAT/eval/glucose",
+                "../eval/glucose",
                 f"-var-decay={v}",
                 f"-cla-decay={c}",
                 path,
