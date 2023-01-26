@@ -160,12 +160,6 @@ def train_eval(name):
 if __name__ == "__main__":
     formulas_path = "./dataset/formulas/"
     names = os.listdir(formulas_path)
-    # names = [
-    #     "ssa2670-141.processed.cnf",
-    #     "ssa2670-130.processed.cnf",
-    #     "bmc-ibm-2.processed.cnf",
-    #     # "bmc-ibm-7.processed.cnf",
-    # ]
     print(names)
     p = Pool(1)
     for name in names:
