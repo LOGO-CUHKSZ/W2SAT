@@ -1,6 +1,6 @@
 # W2SAT: Learning to generate SAT instances from Weighted Literal Incidence Graphs
 
-This is the official implementation of the our paper .
+This is the official implementation of the our paper ["W2SAT: Learning to generate SAT instances from Weighted Literal Incidence Graphs"](https://arxiv.org/abs/2302.00272).
 
 The dependency of the code is in ``requirement.txt``.
 
