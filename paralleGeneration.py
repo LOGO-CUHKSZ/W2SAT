@@ -159,7 +159,8 @@ def train_eval(name):
 
 if __name__ == "__main__":
     formulas_path = "./dataset/formulas/"
-    names = os.listdir(formulas_path)
+    # names = os.listdir(formulas_path)
+    names = ['aes_32_3_keyfind_2.processed.cnf']
     print(names)
     p = Pool(1)
     for name in names:

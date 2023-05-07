@@ -157,6 +157,89 @@ def lazy_clique_edge_cover(
     return [clique_candidates[idx] for idx in current_clique_idxs]
 
 
+def tabu_lazy_greedy_cover(
+    lig_weighted_adjacency_matrix, clique_candidates, cliques_quota
+):
+    def get_edges(clique):
+        return it.combinations(clique, 2)
+
+    node_occurrence = [[] for i in range(len(lig_weighted_adjacency_matrix))]
+    for idx, clique in enumerate(clique_candidates):
+        for node in clique:
+            node_occurrence[node].append(idx)
+    node_occurrence = [set(occ) for occ in node_occurrence]
+
+    # build edge_occurrence
+    triu_adjacency_matrix = np.triu(lig_weighted_adjacency_matrix)
+    x, y = triu_adjacency_matrix.nonzero()
+    edge_list = [frozenset([i, j]) for i, j in zip(x, y)]
+    edge_occurrence = {}
+    for edge in edge_list:
+        i, j = edge
+        edge_occurrence[edge] = list(
+            node_occurrence[i].intersection(node_occurrence[j])
+        )
+
+    # default clique gain
+    def get_default_gain(x):
+        return len(x) * (len(x) - 1)
+
+    def isomorphism(clause_1, clause_2):
+        literal_mapping = lambda x: int((x + 2) / 2) if x % 2 == 0 else int(-(x + 1) / 2)
+        if set(abs(literal_mapping(x)) for x in clause_1) == set(abs(literal_mapping(x)) for x in clause_2):
+            return True
+        return False
+
+    def tabu_test(current_cliques, checking_clique):
+        quota = 2 ** (len(checking_clique)-2)
+        for clique in current_cliques:
+            if isomorphism(clique, checking_clique):
+                quota -= 1
+            if quota <= 0:
+                return True
+        return False
+
+
+    clique_gain = np.array([get_default_gain(clique) for clique in clique_candidates])
+
+    # the greedy process (import probability in here?)
+    current_clique_idxs = []
+    tabu_clique_idx = []
+    current_cliques = []
+    
+    while len(current_clique_idxs) < cliques_quota:
+        clique_gain[tabu_clique_idx] = -10000
+        clique_gain[current_clique_idxs] = -10000
+
+        best_clique_idx = np.argmax(clique_gain)
+        best_clique = clique_candidates[best_clique_idx]
+        # tabu setting
+        if tabu_test(current_cliques, best_clique):
+            tabu_clique_idx.append(best_clique_idx)
+        else:
+            current_clique_idxs.append(best_clique_idx)
+            current_cliques.append(best_clique)
+
+            # update the weighted_adjacency_matrix
+            to_update_edges = []
+            best_clique_edges = list(get_edges(best_clique))
+            for edge in best_clique_edges:
+                x, y = edge
+                lig_weighted_adjacency_matrix[x, y] -= 1
+                lig_weighted_adjacency_matrix[y, x] -= 1
+                if lig_weighted_adjacency_matrix[x, y] == 0:
+                    to_update_edges.append(edge)
+
+            # find the realted clique and update the gain table
+            for edge in to_update_edges:
+                edge = frozenset(edge)
+                cliques_idx = edge_occurrence[edge]
+                for idx in cliques_idx:
+                    clique_gain[idx] = clique_gain[idx] - 4
+        
+    return current_cliques
+
+
 def get_clique_candidates(lig_adjacency_matrix, k):
     graph = nx.from_numpy_matrix(lig_adjacency_matrix)
     cliques = nx.enumerate_all_cliques(graph)
