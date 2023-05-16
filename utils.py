@@ -152,7 +152,7 @@ def lazy_clique_edge_cover(
             edge = frozenset(edge)
             cliques_idx = edge_occurrence[edge]
             for idx in cliques_idx:
-                clique_gain[idx] = clique_gain[idx] - 2
+                clique_gain[idx] = clique_gain[idx] - 4
 
     return [clique_candidates[idx] for idx in current_clique_idxs]
 
@@ -240,13 +240,13 @@ def tabu_lazy_greedy_cover(
     return current_cliques
 
 
-def get_clique_candidates(lig_adjacency_matrix, k):
+def get_clique_candidates(lig_adjacency_matrix, k, j=1):
     graph = nx.from_numpy_matrix(lig_adjacency_matrix)
     cliques = nx.enumerate_all_cliques(graph)
     clique_candidates = []
     for clique in cliques:
         if len(clique) <= k:
-            if len(clique) > 1:
+            if len(clique) > j:
                 clique_candidates.append(clique)
         else:
             break

@@ -12,12 +12,13 @@
 #     done
 # done
 
-name=$1
-vdecay=$2
-cdecay=$3
+name="/Users/wenweihuang/Workspace/Wednesday/cliqueCover/test/smulo016.processed.cnf"
+# vdecay=$2
+# cdecay=$3
 
-for formula in ../result/generation/$name/*
+for formula in $name/*
 do
     # echo ${formula}
-    ./glucose -var-decay=$vdecay -cla-decay=$cdecay $formula >> output.log
+    # ./tools/glucose -var-decay=$vdecay -cla-decay=$cdecay $formula >> output.log
+    ./glucose $formula >> output.log
 done

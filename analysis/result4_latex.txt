@@ -1,0 +1,45 @@
+../result/generation/sat_prob_83.processed.cnf
+W2SAT & 1759.000 & 8012.000 & 0.425 & 0.366 & 0.695 & 0.776 & 0.856 & 0.679
+../result/generation/mrpp_4x4#4_5.processed.cnf
+W2SAT & 309.000 & 2517.000 & 0.424 & 0.331 & 0.470 & 0.530 & 0.693 & 0.566
+../result/generation/aes_64_1_keyfind_1.processed.cnf
+W2SAT & 320.000 & 2088.000 & 0.478 & 0.366 & 0.669 & 0.682 & 0.745 & 0.598
+../result/generation/bmc-ibm-2.processed.cnf
+W2SAT & 119.000 & 573.000 & 0.586 & 0.416 & 0.573 & 0.601 & 0.626 & 0.530
+../result/generation/ssa2670-141.processed.cnf
+W2SAT & 91.000 & 377.000 & 0.528 & 0.347 & 0.502 & 0.547 & 0.649 & 0.518
+
+../result/generation/bmc-ibm-5.processed.cnf
+W2SAT & 1068.000 & 6042.000 & 0.493 & 0.365 & 0.736 & 0.765 & 0.809 & 0.626
+
+../result/generation/ssa2670-130.processed.cnf
+W2SAT & 82.000 & 327.000 & 0.522 & 0.372 & 0.479 & 0.518 & 0.617 & 0.511
+../result/generation/bmc-ibm-7.processed.cnf
+W2SAT & 860.000 & 4797.000 & 0.527 & 0.386 & 0.675 & 0.696 & 0.741 & 0.591
+
+../result/generation/countbitsrotate016.processed.cnf
+W2SAT & 1122.000 & 4555.000 & 0.381 & 0.323 & 0.573 & 0.629 & 0.751 & 0.602
+
+../result/generation/mrpp_4x4#8_8.processed.cnf
+W2SAT & 717.000 & 6773.000 & 0.385 & 0.292 & 0.544 & 0.579 & 0.705 & 0.598
+
+../result/generation/mrpp_4x4#4_4.processed.cnf
+W2SAT & 208.000 & 1538.000 & 0.442 & 0.349 & 0.463 & 0.537 & 0.680 & 0.550
+
+../result/generation/bf0432-007.processed.cnf
+W2SAT & 473.000 & 2038.000 & 0.441 & 0.352 & 0.630 & 0.776 & 0.767 & 0.633
+
+../result/generation/smulo016.processed.cnf
+W2SAT & 1459.000 & 6288.000 & 0.441 & 0.360 & 0.606 & 0.627 & 0.753 & 0.595
+
+../result/generation/countbitssrl016.processed.cnf
+W2SAT & 1691.000 & 8378.000 & 0.472 & 0.362 & 0.752 & 0.754 & 0.800 & 0.600
+
+../result/generation/cmu-bmc-longmult15.processed.cnf
+W2SAT & 1731.000 & 9791.000 & 0.477 & 0.334 & 0.714 & 0.732 & 0.799 & 0.588
+
+../result/generation/aes_32_3_keyfind_2.processed.cnf
+W2SAT & 450.000 & 2204.000 & 0.390 & 0.325 & 0.618 & 0.650 & 0.741 & 0.562
+
+../result/generation/mrpp_4x4#6_5.processed.cnf
+W2SAT & 330.000 & 2721.000 & 0.429 & 0.334 & 0.467 & 0.513 & 0.678 & 0.554

@@ -33,7 +33,7 @@ def get_graph_metrics(formulas_path):
 
     lines = []
     for filename in os.listdir(formulas_path):
-        source = formulas_path + filename
+        source = os.path.join(formulas_path, filename)
         cnf = open(source)
         content = cnf.readlines()
         cnf.close()
@@ -93,12 +93,12 @@ def get_graph_metrics(formulas_path):
     lines = np.array(lines)
     means = np.nanmean(lines, axis=0)
     std = np.nanstd(lines, axis=0)
-    print("W2SAT &")
-    for i, column_name in enumerate(title):
-        # print("mean/std {}: {}/{}".format(column_name, means[i], std[i]))
-        print(f"{means[i]:.3f} &")
 
-
+    print(formulas_path)
+    print("W2SAT & " + ' & '.join(f'{means[v]:.3f}' for v in range(8)) + ' \\')
+    # for i, column_name in enumerate(title):
+    #     # print("mean/std {}: {}/{}".format(column_name, means[i], std[i]))
+    #     print(f"{means[i]:.3f} &")
 
 
 
@@ -107,7 +107,6 @@ def main():
     parser = getParser()
 
     (options, args) = parser.parse_args()
-
     path_to_formulas = options.path_to_formulas
     benchmark_set_name = path_to_formulas.split("/")[-2]
     out_name = options.out_file

@@ -89,7 +89,7 @@ def train_eval(name):
     cell_model = Cell(
         A=sparse_matrix,
         H=10,
-        callbacks=[EdgeOverlapCriterion(invoke_every=10, edge_overlap_limit=0.85)],
+        callbacks=[EdgeOverlapCriterion(invoke_every=10, edge_overlap_limit=0.8)],
     )
 
     cell_model.train(
@@ -123,10 +123,19 @@ def train_eval(name):
 
         weighted_graph_prime = np.copy(graph_prime)
         weighted_graph_prime[weighted_graph_prime.nonzero()] = weight
+
+        # nomarl
         clique_candidates = get_clique_candidates(graph_prime, max_len)
         current_cliques = lazy_clique_edge_cover(
             np.copy(weighted_graph_prime), clique_candidates, num_clauses
         )
+
+        # # tabu
+        # clique_candidates = get_clique_candidates(graph_prime, max_len, j=2)
+        # current_cliques = tabu_lazy_greedy_cover(
+        #     np.copy(weighted_graph_prime), clique_candidates, num_clauses
+        # )
+
         current_sat = cliques_to_sat(current_cliques)
         filename = f"{directory}/sample-{idx}.cnf"
         if not os.path.exists(directory):
@@ -159,10 +168,10 @@ def train_eval(name):
 
 if __name__ == "__main__":
     formulas_path = "./dataset/formulas/"
-    # names = os.listdir(formulas_path)
-    names = ['aes_32_3_keyfind_2.processed.cnf']
+    names = os.listdir(formulas_path)
+    # names = ['countbitsrotate016.processed.cnf']
     print(names)
-    p = Pool(1)
+    p = Pool(8)
     for name in names:
         p.apply_async(
             train_eval,
