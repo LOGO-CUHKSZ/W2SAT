@@ -158,7 +158,7 @@ def lazy_clique_edge_cover(
 
 
 def tabu_lazy_greedy_cover(
-    lig_weighted_adjacency_matrix, clique_candidates, cliques_quota
+    lig_weighted_adjacency_matrix, clique_candidates, num_clauses, num_vars, repeated_bar
 ):
     def get_edges(clique):
         return it.combinations(clique, 2)
@@ -180,46 +180,70 @@ def tabu_lazy_greedy_cover(
             node_occurrence[i].intersection(node_occurrence[j])
         )
 
+    literal_mapping = lambda x: int((x + 2) / 2) if x % 2 == 0 else int(-(x + 1) / 2)
+
     # default clique gain
     def get_default_gain(x):
         return len(x) * (len(x) - 1)
-
-    def isomorphism(clause_1, clause_2):
-        literal_mapping = lambda x: int((x + 2) / 2) if x % 2 == 0 else int(-(x + 1) / 2)
-        if set(abs(literal_mapping(x)) for x in clause_1) == set(abs(literal_mapping(x)) for x in clause_2):
-            return True
-        return False
-
-    def tabu_test(current_cliques, checking_clique):
-        quota = 2 ** (len(checking_clique)-2)
-        for clique in current_cliques:
-            if isomorphism(clique, checking_clique):
-                quota -= 1
-            if quota <= 0:
+    
+    # version 3
+    def triangle_finding(repeated_pairs):
+        # build the adjacency graph
+        vars = set([x for pair in repeated_pairs for x in pair])
+        graph = {var: set() for var in vars}
+        for x, y in repeated_pairs:
+            graph[x].add(y)
+            graph[y].add(x)
+        # Check if the adjacency lists of x and y have a common element 
+        for x, y in repeated_pairs:
+            if not graph[x].isdisjoint(graph[y]):
                 return True
         return False
 
+    def triangle_tabu_test(pairs_frequency, repeated_pairs, checking_clique):
+        update_pairs_frequency = pairs_frequency.copy()
+        update_repeated_pairs = repeated_pairs.copy()
+        vars = [abs(literal_mapping(x)) for x in checking_clique]
+        for x, y in it.combinations(vars, 2):
+            update_pairs_frequency[x, y] += 1
+            if update_pairs_frequency[x, y] == repeated_bar:
+                update_repeated_pairs.append((x, y))
+            
+        return triangle_finding(update_repeated_pairs), update_pairs_frequency, update_repeated_pairs
 
+    # heuristic
     clique_gain = np.array([get_default_gain(clique) for clique in clique_candidates])
 
     # the greedy process (import probability in here?)
     current_clique_idxs = []
     tabu_clique_idx = []
     current_cliques = []
-    
-    while len(current_clique_idxs) < cliques_quota:
+    pairs_frequency = np.zeros([num_vars + 1, num_vars + 1])
+    repeated_pairs = []
+
+    while len(current_clique_idxs) < num_clauses:
         clique_gain[tabu_clique_idx] = -10000
         clique_gain[current_clique_idxs] = -10000
 
         best_clique_idx = np.argmax(clique_gain)
+        if clique_gain[best_clique_idx] == -10000:
+            print(f'ealy stop at length: {len(current_cliques)}')
+            return current_cliques
         best_clique = clique_candidates[best_clique_idx]
-        # tabu setting
-        if tabu_test(current_cliques, best_clique):
+        # # tabu setting
+        # if tabu_test(current_cliques, best_clique):
+        #     tabu_clique_idx.append(best_clique_idx)
+        # triangle tabu setting
+        tabu_flag, update_pairs_frequency, update_repeated_pairs = triangle_tabu_test(pairs_frequency, repeated_pairs, best_clique)
+        if tabu_flag:
             tabu_clique_idx.append(best_clique_idx)
         else:
+            pairs_frequency = update_pairs_frequency
+            repeated_pairs = update_repeated_pairs
+            # print(f'current clauses size: {len(current_clique_idxs)}')
+            # print(f'current clauses: {cliques_to_sat(current_cliques)}')
             current_clique_idxs.append(best_clique_idx)
             current_cliques.append(best_clique)
-
             # update the weighted_adjacency_matrix
             to_update_edges = []
             best_clique_edges = list(get_edges(best_clique))
@@ -237,16 +261,17 @@ def tabu_lazy_greedy_cover(
                 for idx in cliques_idx:
                     clique_gain[idx] = clique_gain[idx] - 4
         
+        
     return current_cliques
 
 
-def get_clique_candidates(lig_adjacency_matrix, k, j=1):
+def get_clique_candidates(lig_adjacency_matrix, k, j=2):
     graph = nx.from_numpy_matrix(lig_adjacency_matrix)
     cliques = nx.enumerate_all_cliques(graph)
     clique_candidates = []
     for clique in cliques:
         if len(clique) <= k:
-            if len(clique) > j:
+            if len(clique) >= j:
                 clique_candidates.append(clique)
         else:
             break
@@ -355,6 +380,7 @@ def eval_solution(sat, num_vars):
     clust_LIG = nx.average_clustering(LIG)
 
     part_VIG = community.best_partition(VIG)
+    print(f'VIG community nums: {len(set(part_VIG.values()))}')
     mod_VIG = community.modularity(part_VIG, VIG)
 
     part_LIG = community.best_partition(LIG)

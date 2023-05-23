@@ -28,12 +28,12 @@ if __name__ == "__main__":
     vdecays = [0.75, 0.80, 0.85, 0.90, 0.95]
     cdecays = [0.7, 0.8, 0.9, 0.99, 0.999]
     instances = [
-        "sat_prob_83.processed.cnf",
-        "aes_32_3_keyfind_2.processed.cnf",
-        "countbitsrotate016.processed.cnf",
-        "cmu-bmc-longmult15.processed.cnf",
-        "smulo016.processed.cnf",
         "countbitssrl016.processed.cnf",
+        "smulo016.processed.cnf",
+        "cmu-bmc-longmult15.processed.cnf",
+        "countbitsrotate016.processed.cnf",
+        "aes_32_3_keyfind_2.processed.cnf",
+        "sat_prob_83.processed.cnf",
     ]
     # instances = ["smulo016.processed.cnf", "countbitssrl016.processed.cnf"]
     p = Pool(30)
