@@ -12,7 +12,7 @@
 #     done
 # done
 
-name="/Users/wenweihuang/Workspace/Wednesday/cliqueCover/test/smulo016.processed.cnf"
+name="~/Workspace/Wednesday/cliqueCover/test/smulo016.processed.cnf"
 # vdecay=$2
 # cdecay=$3
 

@@ -17,7 +17,7 @@ def read_sat(sat_path):
 
         return vars_num, clauses_num, sat
 
-vars_num, clauses_num, sat = read_sat("/Users/wenweihuang/Workspace/W2SAT/result/generation/aes_32_3_keyfind_2.processed.cnf/sample-20.cnf")
+vars_num, clauses_num, sat = read_sat("~/Workspace/W2SAT/result/generation/aes_32_3_keyfind_2.processed.cnf/sample-20.cnf")
 
 def unsatcore_detect (vars_num, sat):
     sat_set = dict()
